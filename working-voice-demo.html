@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Generator - Working Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+            color: white;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, #fff, #a8edea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .control {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+        
+        .control label {
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .select, .slider {
+            width: 100%;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            height: 6px;
+            background: linear-gradient(to right, #667eea, #764ba2);
+            outline: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+        }
+        
+        .status {
+            text-align: center;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .success {
+            background: rgba(34, 197, 94, 0.3);
+            border: 1px solid #22c55e;
+        }
+        
+        .error {
+            background: rgba(239, 68, 68, 0.3);
+            border: 1px solid #ef4444;
+        }
+        
+        .info {
+            background: rgba(59, 130, 246, 0.3);
+            border: 1px solid #3b82f6;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+                margin: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .buttons {
+                flex-direction: column;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Voice Generator</h1>
+            <p>Convert text to speech using browser's built-in voices</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="text">Text to Convert:</label>
+            <textarea 
+                id="text" 
+                class="textarea" 
+                placeholder="Enter your text here... Try: 'Hello! Welcome to our voice generator. This is a demonstration of text-to-speech technology.'"
+            ></textarea>
+        </div>
+        
+        <div class="controls">
+            <div class="control">
+                <label for="voice">Voice:</label>
+                <select id="voice" class="select">
+                    <option value="">Select Voice</option>
+                </select>
+            </div>
+            
+            <div class="control">
+                <label for="rate">Speed: <span id="rateValue">1.0</span></label>
+                <input type="range" id="rate" class="slider" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            
+            <div class="control">
+                <label for="pitch">Pitch: <span id="pitchValue">1.0</span></label>
+                <input type="range" id="pitch" class="slider" min="0.5" max="2" step="0.1" value="1">
+            </div>
+            
+            <div class="control">
+                <label for="volume">Volume: <span id="volumeValue">100%</span></label>
+                <input type="range" id="volume" class="slider" min="0" max="1" step="0.1" value="1">
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button id="speakBtn" class="btn">🎵 Generate Voice</button>
+            <button id="pauseBtn" class="btn btn-secondary">⏸️ Pause</button>
+            <button id="stopBtn" class="btn btn-secondary">⏹️ Stop</button>
+            <button id="downloadBtn" class="btn btn-secondary">⬇️ Download</button>
+        </div>
+        
+        <div id="status" class="status info">
+            Ready to generate speech. Enter text and click "Generate Voice".
+        </div>
+        
+        <div class="status info">
+            <strong>🎯 Quick Tips:</strong><br>
+            • Select different voices for variety<br>
+            • Adjust speed and pitch for natural speech<br>
+            • Use punctuation for better phrasing<br>
+            • Works best with modern browsers (Chrome, Firefox, Safari, Edge)
+        </div>
+    </div>
+
+    <script>
+        class VoiceGenerator {
+            constructor() {
+                this.synth = window.speechSynthesis;
+                this.voices = [];
+                this.currentUtterance = null;
+                this.isRecording = false;
+                this.mediaRecorder = null;
+                this.audioChunks = [];
+                
+                this.initializeElements();
+                this.loadVoices();
+                this.bindEvents();
+                
+                // Load voices when they become available
+                this.synth.addEventListener('voiceschanged', () => {
+                    this.loadVoices();
+                });
+            }
+            
+            initializeElements() {
+                this.textArea = document.getElementById('text');
+                this.voiceSelect = document.getElementById('voice');
+                this.rateSlider = document.getElementById('rate');
+                this.pitchSlider = document.getElementById('pitch');
+                this.volumeSlider = document.getElementById('volume');
+                this.speakBtn = document.getElementById('speakBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.downloadBtn = document.getElementById('downloadBtn');
+                this.status = document.getElementById('status');
+                this.rateValue = document.getElementById('rateValue');
+                this.pitchValue = document.getElementById('pitchValue');
+                this.volumeValue = document.getElementById('volumeValue');
+            }
+            
+            loadVoices() {
+                this.voices = this.synth.getVoices();
+                this.populateVoiceList();
+            }
+            
+            populateVoiceList() {
+                this.voiceSelect.innerHTML = '<option value="">Default Voice</option>';
+                
+                // Group voices by language for better organization
+                const voiceGroups = {};
+                
+                this.voices.forEach((voice, index) => {
+                    const lang = voice.lang.split('-')[0];
+                    if (!voiceGroups[lang]) {
+                        voiceGroups[lang] = [];
+                    }
+                    voiceGroups[lang].push({...voice, index});
+                });
+                
+                // Add English voices first
+                if (voiceGroups['en']) {
+                    voiceGroups['en'].forEach(voice => {
+                        const option = document.createElement('option');
+                        option.value = voice.index;
+                        option.textContent = `${voice.name} (${voice.lang}) ${voice.default ? '⭐' : ''}`;
+                        this.voiceSelect.appendChild(option);
+                    });
+                }
+                
+                // Add other language voices
+                Object.keys(voiceGroups).forEach(lang => {
+                    if (lang !== 'en' && voiceGroups[lang].length > 0) {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = `${lang.toUpperCase()} Voices`;
+                        
+                        voiceGroups[lang].forEach(voice => {
+                            const option = document.createElement('option');
+                            option.value = voice.index;
+                            option.textContent = `${voice.name} (${voice.lang})`;
+                            optgroup.appendChild(option);
+                        });
+                        
+                        this.voiceSelect.appendChild(optgroup);
+                    }
+                });
+                
+                this.updateStatus(`✅ Loaded ${this.voices.length} voices`, 'success');
+            }
+            
+            bindEvents() {
+                this.speakBtn.addEventListener('click', () => this.speak());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.stopBtn.addEventListener('click', () => this.stop());
+                this.downloadBtn.addEventListener('click', () => this.downloadAudio());
+                
+                // Update value displays
+                this.rateSlider.addEventListener('input', (e) => {
+                    this.rateValue.textContent = e.target.value;
+                });
+                
+                this.pitchSlider.addEventListener('input', (e) => {
+                    this.pitchValue.textContent = e.target.value;
+                });
+                
+                this.volumeSlider.addEventListener('input', (e) => {
+                    this.volumeValue.textContent = Math.round(e.target.value * 100) + '%';
+                });
+                
+                // Add example text
+                this.textArea.value = "Hello! Welcome to our advanced voice generator. This application converts your text into natural speech using your browser's built-in voices. You can adjust the speed, pitch, and volume to create the perfect voice for your needs. Try experimenting with different settings to find your ideal voice!";
+            }
+            
+            speak() {
+                const text = this.textArea.value.trim();
+                
+                if (!text) {
+                    this.updateStatus('❌ Please enter some text to convert', 'error');
+                    return;
+                }
+                
+                if (this.synth.speaking) {
+                    this.updateStatus('⚠️ Already speaking. Stop current speech first.', 'error');
+                    return;
+                }
+                
+                this.updateStatus('🎵 Generating speech...', 'info');
+                
+                this.currentUtterance = new SpeechSynthesisUtterance(text);
+                
+                // Set voice
+                const selectedVoiceIndex = this.voiceSelect.value;
+                if (selectedVoiceIndex && this.voices[selectedVoiceIndex]) {
+                    this.currentUtterance.voice = this.voices[selectedVoiceIndex];
+                }
+                
+                // Set parameters
+                this.currentUtterance.rate = parseFloat(this.rateSlider.value);
+                this.currentUtterance.pitch = parseFloat(this.pitchSlider.value);
+                this.currentUtterance.volume = parseFloat(this.volumeSlider.value);
+                
+                // Event handlers
+                this.currentUtterance.onstart = () => {
+                    this.updateStatus('🔊 Speaking...', 'success');
+                    this.speakBtn.textContent = '🔊 Speaking...';
+                    this.speakBtn.disabled = true;
+                };
+                
+                this.currentUtterance.onend = () => {
+                    this.updateStatus('✅ Speech completed successfully!', 'success');
+                    this.speakBtn.textContent = '🎵 Generate Voice';
+                    this.speakBtn.disabled = false;
+                };
+                
+                this.currentUtterance.onerror = (event) => {
+                    this.updateStatus(`❌ Speech failed: ${event.error}`, 'error');
+                    this.speakBtn.textContent = '🎵 Generate Voice';
+                    this.speakBtn.disabled = false;
+                };
+                
+                this.currentUtterance.onpause = () => {
+                    this.updateStatus('⏸️ Speech paused', 'info');
+                };
+                
+                this.currentUtterance.onresume = () => {
+                    this.updateStatus('▶️ Speech resumed', 'success');
+                };
+                
+                // Start speaking
+                this.synth.speak(this.currentUtterance);
+            }
+            
+            pause() {
+                if (this.synth.speaking && !this.synth.paused) {
+                    this.synth.pause();
+                    this.pauseBtn.textContent = '▶️ Resume';
+                } else if (this.synth.paused) {
+                    this.synth.resume();
+                    this.pauseBtn.textContent = '⏸️ Pause';
+                }
+            }
+            
+            stop() {
+                if (this.synth.speaking) {
+                    this.synth.cancel();
+                    this.updateStatus('⏹️ Speech stopped', 'info');
+                    this.speakBtn.textContent = '🎵 Generate Voice';
+                    this.speakBtn.disabled = false;
+                    this.pauseBtn.textContent = '⏸️ Pause';
+                }
+            }
+            
+            async downloadAudio() {
+                this.updateStatus('💾 Audio download feature coming soon...', 'info');
+                
+                // Note: Direct audio download from Web Speech API is complex
+                // For full functionality, users should use the cPanel installation
+                // which can be configured with more advanced audio recording capabilities
+            }
+            
+            updateStatus(message, type) {
+                this.status.textContent = message;
+                this.status.className = `status ${type}`;
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            if ('speechSynthesis' in window) {
+                new VoiceGenerator();
+            } else {
+                document.getElementById('status').innerHTML = 
+                    '<strong>❌ Speech Synthesis Not Supported</strong><br>' +
+                    'Your browser does not support speech synthesis. ' +
+                    'Please try Chrome, Firefox, Safari, or Edge.';
+                document.getElementById('status').className = 'status error';
+            }
+        });
+    </script>
+</body>
+</html>
